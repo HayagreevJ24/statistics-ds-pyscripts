@@ -1,0 +1,95 @@
+Sympy Functions:
+
+- Sympy supports all the functions of math. Use "from sympy import *" to avoid using keywords all the time.
+
+Exact computations:
+1. sqrt(number) - Returns Exact value
+2. N(Exact computation, numOfDigits) - Numerical value correct to number of digits.
+    Example: N(sqrt(18), 18) will return sqrt(18) to 18 digits.
+
+Computer algebra system commands:
+
+1. Step 1 is to define the symbols that will be used.
+x, y, z = symbols('x y z') - Will unpack all the symbols
+Then just define the expressions as needed. Eg: exp = x**2 - y ** 2.
+You can perform manipulation on this like you would with hand, using the declared symbols ONLY.
+
+
+2. expand(expression) - expands a factored expression
+3. factor(expression) - factors an expression
+4. expression.evalf(subs= Dictionary of substituions with the symbols as keywords) - Evaluation of expressions.
+Example: expression.evalf(subs={x:1, y:2, z:6})
+
+
+NUMPY FRIENDLY COMPUTATIONS:
+Suppose you have an expression
+f = x ** 2 + y ** 2
+You have to make it numpy friendly before using it on numpy arrays.
+from sympy.utilities.lambdify import lambdify
+f_symb_numpy = lambdify(x, f_symb, 'numpy')
+
+
+(A) SYMBOLIC DIFFERENTIATION IN PYTHON USING SYMPY
+h = x**3
+dhdx = diff(h, x)
+
+dhdx.evalf(subs={x:3})
+
+NUMPY FRIENDLY DIFFERENTIATION:
+dhdx_numpy = lambdify(x, dhdx, 'numpy')
+
+(B) NUMERICAL DIFFERENTIATION IN PYTHON USING NUMPY
+np.gradient(expression/function, variable)
+example:
+def f(x):
+    return exp(-x**3) + sin(x) - cos(x)
+
+def dfdx_numerical(x):
+    return numpy.gradient(f(x), x)
+
+(C) AUTOMATIC DIFFERENTIATION IN PYTHON USING JAX (AUTOGRAD)
+
+1. Import the JAX module, along with its built in numpy module. This will replace the normal numpy module.
+
+from jax import grad, vmap
+import jax.numpy as jnp
+
+2. Define an array using jnp
+myArr = jnp.array([1, 2, 3], astype=int)
+print(type(myArr)) will give  <class 'jaxlib.xla_extension.DeviceArray'>
+This is normal for jax numpy. It will not give <class 'numpy.ndarray'>
+
+3. Setting an array element to a value
+- Unlike in Numpy, JAX Numpy arrays are immutable. You cannot assign values using indices.
+Command to assign values -
+myArr = myArr.at[index].set(value)
+- Assign the commmand again to myArr and it will update the value at the specified index with the passed value.
+
+
+4. Derivative command for a single value
+
+Let f(x) = x**2
+A gradient function has to be set for f with the argnums = 0 (differentiate with respect to the first parameter.)
+dfdx = grad(f, argnums=0)
+derivativeValue = dfdx(10) will return 20.
+
+We can also do this with a multivariate function.
+def g(x, y):
+    return (x**2 + y**2)
+
+partialDerivativeX = grad(g, argnums=0)
+partialDerivativeY = grad(g, argnums=1)
+Now you can store partial derivatives in separate variables with the above function, but BOTH X AND Y HAVE TO BE PASSED INTO BOTH.
+Example: if you want to evaluate the partial derivative with respect to y at x = 4, y = 9, then;
+desiredDerivatve = partialDerivativeY(4, 9) in that argument order only (of the original function so x, y)
+
+
+
+5. Derivative command for an entire array.
+Use VMAP:
+def k(x):
+    return sin(x)
+
+myArr = jnp.linspace(-2pi, 2pi, pi/2)
+
+vmap(grad(k)(myArr)) Will produce the derivative for all values in the array
